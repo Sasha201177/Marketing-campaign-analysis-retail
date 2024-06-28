@@ -1,4 +1,5 @@
 /*
+PostgreSQL
 In the utm_parameters field, Cyrillic letters were encoded in the URL string. 
 Decoded the utm_campaign value by creating a temporary function. 
 */
