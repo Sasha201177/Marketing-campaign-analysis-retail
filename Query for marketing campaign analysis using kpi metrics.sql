@@ -1,4 +1,5 @@
-/*In the utm_parameters field, Cyrillic letters were encoded in the URL string. 
+/*
+In the utm_parameters field, Cyrillic letters were encoded in the URL string. 
 Decoded the utm_campaign value by creating a temporary function. 
 */
 
@@ -8,7 +9,8 @@ select
 FROM regexp_matches($1, '%[0-9a-f][0-9a-f]|.', 'gi') AS r(m);
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 
-/* Combining Data in the CTE Query
+/* 
+Combining Data in the CTE Query
 combined data from the specified tables in a CTE query to obtain:
 -ad_date as the date of ad display on Google and Facebook.
 -url_parameters as the part of the URL from the campaign link, which includes UTM parameters.
@@ -39,7 +41,8 @@ select ad_date,
 	coalesce (value,0) as value
 from google_ads_basic_daily gabd),
 
-/* Creating a Sample from the CTE
+/* 
+	Creating a Sample from the CTE
  From the resulting CTE, created a sample with:
 - extracted month as the month of advertisement display.
 -utm_campaign extracted from the utm_parameters field.
@@ -49,6 +52,7 @@ from google_ads_basic_daily gabd),
 and ROMI(return of marketing investment) for each date and campaign, 
 using the CASE statement to avoid division by zero errors.
  */
+	
 common_tab2 as (
 	select date(date_trunc ('month', ad_date)) as ad_month,
 	case when lower(substring(url_parameters, 'utm_campaign=([^&#$]+)')) = 'nan' then null 
@@ -85,7 +89,8 @@ FROM
   common_tab2 c1
 LEFT JOIN 
   common_tab2 c2 ON c1.ad_month = c2.ad_month + INTERVAL '1 month' AND c1.utm_campaign = c2.utm_campaign
-order by  c1.utm_campaign, c1.ad_month
+order by  c1.utm_campaign, c1.ad_month;
+	
 /*
   Another option of query using window fx to add new fields to calculate the percentage difference in CPC, CTR, and ROMI compared to the previous month.
  */
@@ -106,7 +111,7 @@ select ad_month,
 	ROMI,
 	round(((ROMI -lag (ROMI, 1) over (partition by utm_campaign order by ad_month))*100)/ 
 	lag (ROMI, 1) over (partition by utm_campaign order by ad_month),2) as romi_diff_prev
-from common_tab2 
+from common_tab2;
 
 
 
